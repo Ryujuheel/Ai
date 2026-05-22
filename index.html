@@ -1,0 +1,212 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#1a1a2e;--gold:#c8a96e;--light:#f8f6f1}
+.ai-page{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);overflow:hidden}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 2.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-0.02em}
+.logo span{color:#c8a96e}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--color-text-secondary);font-size:14px;letter-spacing:0.04em;transition:color 0.2s}
+.nav-links a:hover{color:var(--color-text-primary)}
+.nav-cta{background:var(--color-text-primary);color:var(--color-background-primary);padding:0.5rem 1.25rem;border-radius:2rem;font-size:13px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.02em}
+.hero{padding:5rem 2.5rem 4rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;min-height:480px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:2rem;padding:0.35rem 1rem;font-size:12px;color:var(--color-text-secondary);letter-spacing:0.06em;margin-bottom:1.5rem}
+.pulse{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:3.2rem;line-height:1.08;letter-spacing:-0.03em;margin-bottom:1.5rem}
+.hero-title em{font-style:normal;color:#c8a96e}
+.hero-sub{font-size:1rem;color:var(--color-text-secondary);line-height:1.7;max-width:420px;margin-bottom:2rem;font-weight:300}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);padding:0.75rem 1.75rem;border-radius:2rem;border:none;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:400}
+.btn-secondary{background:transparent;color:var(--color-text-primary);padding:0.75rem 1.75rem;border-radius:2rem;border:0.5px solid var(--color-border-primary);cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
+.hero-visual{position:relative;height:340px;display:flex;align-items:center;justify-content:center}
+.orb{position:absolute;border-radius:50%;filter:blur(0)}
+.orb-1{width:220px;height:220px;background:radial-gradient(circle at 40% 40%, #c8a96e22, #c8a96e08);border:0.5px solid #c8a96e44}
+.orb-2{width:150px;height:150px;background:radial-gradient(circle at 60% 40%, #7c6fe022, #7c6fe008);border:0.5px solid #7c6fe044;transform:translate(60px,-40px)}
+.card-float{position:absolute;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 18px;font-size:12px;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+.card-float-1{bottom:40px;left:10px;min-width:160px}
+.card-float-2{top:40px;right:0;min-width:140px}
+.card-stat{font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;margin-bottom:2px}
+.card-label{color:var(--color-text-secondary);font-size:11px;letter-spacing:0.03em}
+.mini-bar{display:flex;gap:3px;margin-top:8px}
+.bar{width:18px;border-radius:2px;background:var(--color-border-tertiary)}
+.bar.active{background:#c8a96e}
+.center-icon{width:64px;height:64px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:28px}
+.section{padding:4rem 2.5rem}
+.section-label{font-size:11px;letter-spacing:0.1em;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:1rem}
+.section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.9rem;letter-spacing:-0.02em;margin-bottom:1rem}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2.5rem}
+.feat-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:1.5rem;cursor:pointer;transition:border-color 0.2s}
+.feat-card:hover{border-color:var(--color-border-secondary)}
+.feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:18px}
+.feat-icon.gold{background:#c8a96e18;color:#c8a96e}
+.feat-icon.blue{background:#378add18;color:#185fa5}
+.feat-icon.green{background:#63991018;color:#3b6d11}
+.feat-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.5rem}
+.feat-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.6;font-weight:300}
+.models{border-top:0.5px solid var(--color-border-tertiary);padding:4rem 2.5rem}
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2.5rem}
+.model-card{border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:1.5rem;position:relative;overflow:hidden}
+.model-card.featured{border-color:#c8a96e88}
+.model-badge{position:absolute;top:1rem;right:1rem;background:#c8a96e18;color:#c8a96e;font-size:10px;letter-spacing:0.06em;padding:3px 10px;border-radius:2rem;border:0.5px solid #c8a96e44}
+.model-tier{font-size:11px;color:var(--color-text-tertiary);letter-spacing:0.08em;margin-bottom:0.5rem}
+.model-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-0.02em;margin-bottom:0.75rem}
+.model-line{width:32px;height:2px;border-radius:1px;margin-bottom:1rem}
+.model-line.gold{background:#c8a96e}
+.model-line.blue{background:#378add}
+.model-line.gray{background:var(--color-border-secondary)}
+.model-feat{font-size:12px;color:var(--color-text-secondary);line-height:1.8}
+.model-feat li{list-style:none;display:flex;align-items:center;gap:6px}
+.model-feat li::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--color-border-secondary);flex-shrink:0}
+.model-feat li.on::before{background:#c8a96e}
+.cta-strip{background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);padding:3.5rem 2.5rem;display:flex;align-items:center;justify-content:space-between;gap:2rem}
+.cta-text .label{font-size:11px;letter-spacing:0.1em;color:#c8a96e;margin-bottom:0.5rem}
+.cta-text h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:-0.02em}
+.cta-text p{font-size:14px;color:var(--color-text-secondary);margin-top:0.5rem;font-weight:300}
+.cta-actions{display:flex;gap:10px;flex-shrink:0}
+footer{padding:2rem 2.5rem;display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--color-border-tertiary)}
+.footer-copy{font-size:12px;color:var(--color-text-tertiary)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{font-size:12px;color:var(--color-text-tertiary);text-decoration:none}
+</style>
+
+<h2 class="sr-only">AI 서비스 홈페이지 — 네비게이션, 히어로, 기능 소개, 모델 비교 섹션 포함</h2>
+
+<div class="ai-page">
+  <nav class="nav">
+    <div class="logo">nova<span>AI</span></div>
+    <ul class="nav-links">
+      <li><a href="#">제품</a></li>
+      <li><a href="#">API</a></li>
+      <li><a href="#">가격</a></li>
+      <li><a href="#">연구</a></li>
+      <li><a href="#">블로그</a></li>
+    </ul>
+    <button class="nav-cta">무료 시작하기</button>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="hero-tag">
+        <span class="pulse"></span>
+        최신 모델 Nova-4 출시
+      </div>
+      <h1 class="hero-title">당신의 생각을<br><em>현실로</em> 만드는<br>AI 파트너</h1>
+      <p class="hero-sub">글쓰기, 코딩, 분석, 창작 — 모든 작업에서 당신 곁에서 함께합니다. 더 빠르게, 더 정확하게, 더 창의적으로.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="sendPrompt('novaAI에 대해 더 자세히 알려줘')">지금 체험하기 →</button>
+        <button class="btn-secondary">데모 보기</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="center-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+      <div class="card-float card-float-1">
+        <div class="card-stat">99.9%</div>
+        <div class="card-label">업타임 보장</div>
+        <div class="mini-bar">
+          <div class="bar active" style="height:20px"></div>
+          <div class="bar active" style="height:24px"></div>
+          <div class="bar active" style="height:18px"></div>
+          <div class="bar active" style="height:28px"></div>
+          <div class="bar active" style="height:22px"></div>
+          <div class="bar" style="height:16px"></div>
+        </div>
+      </div>
+      <div class="card-float card-float-2">
+        <div class="card-stat">2M+</div>
+        <div class="card-label">활성 사용자</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="border-top:0.5px solid var(--color-border-tertiary)">
+    <div class="section-label">핵심 기능</div>
+    <div class="section-title">AI가 할 수 있는 모든 것</div>
+    <p style="color:var(--color-text-secondary);font-size:14px;font-weight:300;max-width:500px">복잡한 작업도 단순하게. 업무 자동화부터 창의적 프로젝트까지 NovaAI가 함께합니다.</p>
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon gold"><i class="ti ti-writing" aria-hidden="true"></i></div>
+        <div class="feat-name">콘텐츠 생성</div>
+        <div class="feat-desc">블로그, 보고서, 마케팅 카피를 순식간에 완성하세요. 맥락을 이해하는 깊이 있는 글쓰기.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon blue"><i class="ti ti-code" aria-hidden="true"></i></div>
+        <div class="feat-name">코드 어시스턴트</div>
+        <div class="feat-desc">버그 수정, 코드 리뷰, 새 기능 개발까지. 30개 이상 프로그래밍 언어 지원.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon green"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+        <div class="feat-name">데이터 분석</div>
+        <div class="feat-desc">복잡한 데이터를 명확한 인사이트로. 자연어로 질문하고 시각화된 답을 받으세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="models">
+    <div class="section-label">모델 라인업</div>
+    <div class="section-title">목적에 맞는 모델 선택</div>
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="model-tier">LITE</div>
+        <div class="model-name">Nova Flash</div>
+        <div class="model-line gray"></div>
+        <ul class="model-feat">
+          <li class="on">빠른 응답 속도</li>
+          <li class="on">기본 텍스트 생성</li>
+          <li>멀티모달 입력</li>
+          <li>고급 추론</li>
+        </ul>
+      </div>
+      <div class="model-card featured">
+        <div class="model-badge">추천</div>
+        <div class="model-tier">PRO</div>
+        <div class="model-name">Nova 4</div>
+        <div class="model-line gold"></div>
+        <ul class="model-feat">
+          <li class="on">빠른 응답 속도</li>
+          <li class="on">고급 텍스트 생성</li>
+          <li class="on">멀티모달 입력</li>
+          <li class="on">고급 추론</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="model-tier">MAX</div>
+        <div class="model-name">Nova Ultra</div>
+        <div class="model-line blue"></div>
+        <ul class="model-feat">
+          <li class="on">최고 성능</li>
+          <li class="on">무제한 컨텍스트</li>
+          <li class="on">멀티모달 입력</li>
+          <li class="on">전문 도메인 특화</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-strip">
+    <div class="cta-text">
+      <div class="label">지금 바로 시작</div>
+      <h2>첫 달 무료로 경험하세요</h2>
+      <p>신용카드 없이 가입. 언제든지 취소 가능.</p>
+    </div>
+    <div class="cta-actions">
+      <button class="btn-secondary">요금제 보기</button>
+      <button class="btn-primary" onclick="sendPrompt('novaAI 요금제와 기능을 비교해줘')">무료 체험 시작 →</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="logo" style="font-size:1rem">nova<span>AI</span></div>
+    <div class="footer-links">
+      <a href="#">개인정보처리방침</a>
+      <a href="#">이용약관</a>
+      <a href="#">지원센터</a>
+      <a href="#">문의하기</a>
+    </div>
+    <div class="footer-copy">© 2026 NovaAI. All rights reserved.</div>
+  </footer>
+</div>

@@ -10,6 +10,10 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- React & Babel for AI counseling panel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <!-- Google Fonts -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Pretendard:wght@300;400;500;600;700;800&display=swap">
 
@@ -106,6 +110,12 @@
     .dark .custom-scrollbar::-webkit-scrollbar-thumb {
       background: #4a2936;
     }
+
+    /* 호흡 시 올라가는 벚꽃잎 애니메이션 */
+    @keyframes petalFloat {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-50px) rotate(180deg) translateX(30px); opacity: 0; }
+    }
   </style>
 </head>
 <body class="bg-cherry-100 dark:bg-night-200 text-cherry-900 dark:text-cherry-100 min-h-screen flex items-center justify-center p-2 sm:p-4 transition-colors duration-300 relative overflow-x-hidden">
@@ -138,7 +148,7 @@
     <header class="p-6 pb-4 bg-gradient-to-b from-cherry-200/50 to-transparent dark:from-night-50/50 border-b border-cherry-100 dark:border-cherry-900 flex flex-col gap-3">
       <div class="flex justify-between items-start">
         <div>
-          <p id="headerDate" class="text-xs font-semibold text-cherry-600 dark:text-cherry-400 tracking-wider">2026년 6월 5일 금요일</p>
+          <p id="headerDate" class="text-xs font-semibold text-cherry-600 dark:text-cherry-400 tracking-wider">로딩 중...</p>
           <h1 class="text-2xl font-serif font-bold text-cherry-900 dark:text-cherry-50 mt-1 flex items-center gap-2">
             마음똑똑 <span class="text-cherry-500">🌸</span>
           </h1>
@@ -220,10 +230,10 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center text-xs font-bold text-cherry-700 dark:text-cherry-300">
             <span>감정의 크기 (강도)</span>
-            <span id="levelDisplay" class="text-sm text-cherry-600 font-extrabold">5</span>
+            <span id="levelDisplay" class="text-sm text-cherry-600 font-extrabold">3</span>
           </div>
           <div class="flex items-center gap-4 bg-white dark:bg-night-50 border border-cherry-200 dark:border-cherry-900 p-3.5 rounded-2xl">
-            <input type="range" id="moodLevel" min="1" max="10" value="5" class="w-full accent-cherry-500 bg-cherry-200 dark:bg-night-100 rounded-lg appearance-none h-1.5 cursor-pointer" oninput="updateLevelDisplay(this.value)" />
+            <input type="range" id="moodLevel" min="1" max="5" value="3" class="w-full accent-cherry-500 bg-cherry-200 dark:bg-night-100 rounded-lg appearance-none h-1.5 cursor-pointer" oninput="updateLevelDisplay(this.value)" />
           </div>
         </div>
 
@@ -287,51 +297,9 @@
         </div>
       </section>
 
-      <!-- TAB 2: AI 공감 상담소 -->
-      <section id="panel-counsel" class="hidden space-y-4 flex flex-col min-h-[500px]">
-        <div class="flex justify-between items-center pb-2 border-b border-cherry-100 dark:border-cherry-900">
-          <div>
-            <h2 class="text-md font-serif font-bold text-cherry-900 dark:text-cherry-50">마음똑똑 선배와의 대화</h2>
-            <p class="text-[11px] text-cherry-500 dark:text-cherry-400">학업, 취업, 친구 관계 등 털어놓고 싶은 걱정거리들을 대화로 비워내세요.</p>
-          </div>
-          <button onclick="clearChat()" class="text-xs text-cherry-500 hover:text-cherry-700 dark:text-cherry-400 flex items-center gap-1 font-bold">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 비우기
-          </button>
-        </div>
-
-        <!-- 상담 테마 설정 토글 -->
-        <div class="grid grid-cols-2 gap-2 p-1.5 bg-cherry-50/80 dark:bg-night-50/50 rounded-2xl border border-cherry-200/50 dark:border-cherry-900">
-          <button onclick="setChatMode('empathy')" id="mode-empathy" class="py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white dark:bg-night-50 text-cherry-800 dark:text-cherry-100 border border-cherry-300 dark:border-cherry-800">
-            <i data-lucide="heart" class="w-3.5 h-3.5 fill-current text-cherry-500"></i> 따뜻한 공감 모드
-          </button>
-          <button onclick="setChatMode('advice')" id="mode-advice" class="py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-cherry-400 dark:text-cherry-500">
-            <i data-lucide="compass" class="w-3.5 h-3.5 text-cherry-500"></i> 현실 조언 모드
-          </button>
-        </div>
-
-        <!-- 고민 퀵 템플릿 제안 -->
-        <div class="space-y-1.5">
-          <span class="text-[10px] font-bold text-cherry-500">이런 고민을 자주 이야기해요:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button onclick="suggestIssue('학업')" class="px-2.5 py-1.5 bg-white dark:bg-night-50 text-[10px] font-bold rounded-lg border border-cherry-200 dark:border-cherry-900 text-cherry-700 dark:text-cherry-300 hover:border-cherry-400">📚 학점 걱정</button>
-            <button onclick="suggestIssue('진로')" class="px-2.5 py-1.5 bg-white dark:bg-night-50 text-[10px] font-bold rounded-lg border border-cherry-200 dark:border-cherry-900 text-cherry-700 dark:text-cherry-300 hover:border-cherry-400">🧭 진로 막막함</button>
-            <button onclick="suggestIssue('인간관계')" class="px-2.5 py-1.5 bg-white dark:bg-night-50 text-[10px] font-bold rounded-lg border border-cherry-200 dark:border-cherry-900 text-cherry-700 dark:text-cherry-300 hover:border-cherry-400">👥 조별과제 갈등</button>
-            <button onclick="suggestIssue('음악')" class="px-2.5 py-1.5 bg-white dark:bg-night-50 text-[10px] font-bold rounded-lg border border-cherry-200 dark:border-cherry-900 text-cherry-800 dark:text-cherry-200 hover:border-cherry-500 text-cherry-600">🎵 잔잔한 음악 추천</button>
-          </div>
-        </div>
-
-        <!-- 채팅 로그 피드 -->
-        <div id="chatFeed" class="flex-1 min-h-[300px] border border-cherry-200/60 dark:border-cherry-900 bg-white/70 dark:bg-night-50/20 p-4 rounded-3xl overflow-y-auto space-y-3.5 custom-scrollbar">
-          <!-- 웰컴 메세지 등 로딩 -->
-        </div>
-
-        <!-- 입력 컴포넌트 -->
-        <div class="flex gap-2 items-center">
-          <input type="text" id="chatInput" onkeypress="checkChatEnter(event)" placeholder="나지막히 고민을 전하세요. 음악이나 심리상담 추천도 좋습니다..." class="flex-1 p-3.5 text-xs rounded-full border border-cherry-200 dark:border-cherry-900 bg-white dark:bg-night-50 focus:outline-none focus:ring-2 focus:ring-cherry-400" />
-          <button onclick="sendChatMessage()" class="bg-gradient-to-r from-cherry-500 to-cherry-600 text-white p-3.5 rounded-full hover:scale-105 transition shadow-md">
-            <i data-lucide="send" class="w-4 h-4"></i>
-          </button>
-        </div>
+      <!-- TAB 2: AI 공감 상담소 (React 앱이 렌더링될 곳) -->
+      <section id="panel-counsel" class="hidden flex flex-col" style="min-height:520px; margin:-24px; padding:0;">
+        <div id="counsel-root" style="height:100%; min-height:520px;"></div>
       </section>
 
       <!-- TAB 3: 마음 달력 & 통계 분석 -->
@@ -400,15 +368,22 @@
 
           <!-- 호흡 서클 그래픽 -->
           <div class="flex flex-col items-center justify-center py-6 gap-5">
+            <!-- 벚꽃 이모티콘 애니메이션 영역 -->
+            <div id="breathPetalArea" class="relative w-full h-8 overflow-hidden opacity-0 transition-opacity duration-500" style="min-height:32px;">
+              <!-- JS로 벚꽃 이모티콘 삽입됨 -->
+            </div>
             <div class="relative w-36 h-36 flex items-center justify-center">
               <!-- 외부 이완 파동 서클 -->
               <div id="breathRing" class="absolute inset-0 rounded-full bg-cherry-200/40 border border-cherry-300 scale-100 transition-all duration-[1000ms]"></div>
               <!-- 내부 중앙 마인드 코어 -->
-              <div class="z-10 w-24 h-24 rounded-full bg-white dark:bg-night-100 shadow-md border border-cherry-100 dark:border-cherry-900 flex flex-col items-center justify-center text-center p-2">
-                <span id="breathAction" class="text-xs font-bold text-cherry-700 dark:text-cherry-300">준비</span>
-                <span id="breathTimer" class="text-lg font-extrabold text-cherry-900 dark:text-cherry-50 mt-1">0초</span>
+              <div class="z-10 w-24 h-24 rounded-full bg-white dark:bg-night-100 shadow-md border border-cherry-100 dark:border-cherry-900 flex flex-col items-center justify-center text-center p-2 relative transition-all">
+                <div id="breathFace" class="text-3xl mb-0.5 transition-transform duration-1000 ease-in-out">🌸</div>
+                <span id="breathAction" class="text-[10px] font-bold text-cherry-700 dark:text-cherry-300">준비</span>
+                <span id="breathTimer" class="text-sm font-extrabold text-cherry-900 dark:text-cherry-50">0초</span>
               </div>
             </div>
+            <!-- 호흡 소리 텍스트 ('후우우', '하아아' 등) -->
+            <div id="breathSoundText" class="text-cherry-500 font-bold text-base tracking-widest opacity-0 transition-opacity duration-500 min-h-[24px]"></div>
 
             <div class="flex gap-2">
               <button onclick="startBreathingExercise()" id="btnStartBreath" class="bg-cherry-500 hover:bg-cherry-600 text-white font-bold text-xs px-5 py-2 rounded-full shadow transition">호흡 시작</button>
@@ -484,20 +459,13 @@
 
   </div>
 
+  <!-- Vanilla JS 글로벌 로직 -->
   <script>
-    // --- 글로벌 상태 (State) ---
+    // 글로벌 상태
     const appState = {
       activeTab: 'journal',
       selectedMood: '행복',
       selectedTags: [],
-      chatMode: 'empathy',
-      chatHistory: [
-        {
-          role: 'assistant',
-          content: '반가워요! 대학 생활의 쉼터, **마음똑똑 벚꽃관**에 오신 걸 안아드려요. 학업, 친구 갈등, 진로 막막함 등 힘든 마음을 편안하게 선배에게 털어놓아 보세요.\n\n지금은 무조건 지지하는 **[따뜻한 공감 모드]**입니다. 원하시면 현실 해결책을 드리는 **[현실 조언 모드]**로 상단에서 바꿀 수 있답니다.\n\n마음에 안정을 전할 [잔잔한 유튜브 명상 음악 바로 듣기 링크](https://www.youtube.com/results?search_query=%ED%9E%90%EB%A7%81+%EC%9D%8C%EC%95%85)나 마음을 진정시키는 소리 리스트를 원하시면 편하게 요청해 주세요!'
-        }
-      ],
-      isChatLoading: false,
       aiGeneratedCardB64: null,
       isGeneratingCard: false,
       breathState: 'ready', // ready, inhale, hold, exhale
@@ -507,9 +475,8 @@
       moodChartInstance: null,
     };
 
-    const apiKey = ""; // Canvas 런타임에서 자동 매핑
+    const apiKey = ""; // 캔버스 환경 자동 주입
 
-    // 감정 이모티콘 및 명칭 매핑
     const moodMapper = {
       "행복": { emoji: "🌸", color: "var(--color-행복)" },
       "평온": { emoji: "😌", color: "var(--color-평온)" },
@@ -518,27 +485,39 @@
       "화남": { emoji: "😤", color: "var(--color-화남)" }
     };
 
-    // --- 초기 구동 스크립트 ---
-    window.onload = function() {
+    let activeConfirmCallback = null;
+
+    window.addEventListener('DOMContentLoaded', function() {
       initHeaderDate();
       generatePetals();
       selectMood('행복');
       updateStreakDisplay();
       renderJournalFeed();
-      renderChatLogs();
       lucide.createIcons();
-    };
 
-    // 상단 일자 포맷
+      const confirmYesBtn = document.getElementById('confirmYes');
+      if (confirmYesBtn) {
+        confirmYesBtn.onclick = function() {
+          document.getElementById('customConfirm').style.display = 'none';
+          if (activeConfirmCallback) activeConfirmCallback();
+        };
+      }
+      const confirmNoBtn = document.getElementById('confirmNo');
+      if (confirmNoBtn) {
+        confirmNoBtn.onclick = function() { document.getElementById('customConfirm').style.display = 'none'; };
+      }
+    });
+
     function initHeaderDate() {
       const now = new Date();
       const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-      document.getElementById('headerDate').textContent = now.toLocaleDateString('ko-KR', options);
+      const el = document.getElementById('headerDate');
+      if (el) el.textContent = now.toLocaleDateString('ko-KR', options);
     }
 
-    // 흩날리는 벚꽃잎 생성기
     function generatePetals() {
       const container = document.getElementById('petal-container');
+      if(!container) return;
       container.innerHTML = '';
       for (let i = 0; i < 8; i++) {
         const petal = document.createElement('div');
@@ -552,64 +531,55 @@
       }
     }
 
-    // --- 커스텀 토스트 & 컨펌 창 제어 ---
     function triggerToast(message, icon = "🌸") {
       const toast = document.getElementById('customToast');
+      if(!toast) return;
       document.getElementById('toastIcon').textContent = icon;
       document.getElementById('toastMessage').textContent = message;
       toast.style.display = 'flex';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 2500);
+      setTimeout(() => toast.style.display = 'none', 2500);
     }
 
-    let activeConfirmCallback = null;
     function triggerConfirm(message, callback) {
       const modal = document.getElementById('customConfirm');
+      if(!modal) return;
       document.getElementById('confirmMessage').textContent = message;
       modal.style.display = 'flex';
       activeConfirmCallback = callback;
     }
 
-    document.getElementById('confirmYes').onclick = function() {
-      document.getElementById('customConfirm').style.display = 'none';
-      if (activeConfirmCallback) activeConfirmCallback();
-    };
-
-    document.getElementById('confirmNo').onclick = function() {
-      document.getElementById('customConfirm').style.display = 'none';
-    };
-
-    // 테마 전환 (라이트/다크)
     function toggleDarkMode() {
       const isDark = document.documentElement.classList.toggle('dark');
-      document.getElementById('themeText').textContent = isDark ? "☀️ 낮벚꽃 모드" : "🌙 밤벚꽃 모드";
-      if (appState.activeTab === 'calendar') {
-        renderMindChart();
-      }
+      const themeText = document.getElementById('themeText');
+      if(themeText) themeText.textContent = isDark ? "☀️ 낮벚꽃 모드" : "🌙 밤벚꽃 모드";
+      if (appState.activeTab === 'calendar') renderMindChart();
     }
 
-    // --- TAB 1: 일기 쓰기 및 임베디드 감정 처리 ---
+    // --- TAB 1 기능 ---
     function selectMood(mood) {
       appState.selectedMood = mood;
       Object.keys(moodMapper).forEach(key => {
         const el = document.getElementById(`mood-${key}`);
-        if (key === mood) {
-          el.style.borderColor = moodMapper[key].color;
-          el.style.backgroundColor = 'rgba(255,143,171,0.1)';
-        } else {
-          el.style.borderColor = '';
-          el.style.backgroundColor = '';
+        if(el) {
+          if (key === mood) {
+            el.style.borderColor = moodMapper[key].color;
+            el.style.backgroundColor = 'rgba(255,143,171,0.1)';
+          } else {
+            el.style.borderColor = '';
+            el.style.backgroundColor = '';
+          }
         }
       });
     }
 
     function updateLevelDisplay(val) {
-      document.getElementById('levelDisplay').textContent = val;
+      const el = document.getElementById('levelDisplay');
+      if(el) el.textContent = val;
     }
 
     function updateCharCount(txt) {
-      document.getElementById('charCount').textContent = `${txt.length}/300`;
+      const el = document.getElementById('charCount');
+      if(el) el.textContent = `${txt.length}/300`;
     }
 
     function toggleTag(btn) {
@@ -626,14 +596,9 @@
       }
     }
 
-    // AI 힐링 카드 수채화 생성 (Imagen API)
     async function generateAIHealingCard() {
       const noteText = document.getElementById('journalNote').value.trim();
-      if (!noteText) {
-        triggerToast("오늘의 한 줄 느낌을 적어주셔야 어울리는 수채화를 짓습니다.", "⚠️");
-        return;
-      }
-
+      if (!noteText) { triggerToast("오늘의 한 줄 느낌을 적어주셔야 어울리는 수채화를 짓습니다.", "⚠️"); return; }
       const btn = document.getElementById('btnGenerateCard');
       appState.isGeneratingCard = true;
       btn.disabled = true;
@@ -642,36 +607,18 @@
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
         const prompt = `Water-color wash art of warmth, healing mind, cozy cherry blossom tree representing feeling of: ${appState.selectedMood}. Healing card, comfortable landscape with pastel sky, no words, no text labels, clean frame.`;
-        
-        const response = await fetchWithRetry(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            instances: [{ prompt: prompt }],
-            parameters: { sampleCount: 1 }
-          })
-        });
-
+        const response = await fetchWithRetry(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } }) });
         const resData = await response.json();
         if (resData.predictions?.[0]?.bytesBase64Encoded) {
           appState.aiGeneratedCardB64 = `data:image/png;base64,${resData.predictions[0].bytesBase64Encoded}`;
-          
-          // 프리뷰 컨테이너 토글
-          const previewWrap = document.getElementById('cardPreviewContainer');
-          const previewImg = document.getElementById('cardPreviewImg');
-          previewImg.src = appState.aiGeneratedCardB64;
-          previewWrap.classList.remove('hidden');
+          document.getElementById('cardPreviewImg').src = appState.aiGeneratedCardB64;
+          document.getElementById('cardPreviewContainer').classList.remove('hidden');
           triggerToast("마음 치유 미술 카드가 꽃피어났습니다.", "🎨");
-        } else {
-          throw new Error();
-        }
+        } else throw new Error();
       } catch (err) {
-        // Fallback Unsplash 힐링 미술 이미지 매핑
         appState.aiGeneratedCardB64 = "https://images.unsplash.com/photo-1522441815192-d9f04eb0615c?auto=format&fit=crop&q=80&w=500";
-        const previewWrap = document.getElementById('cardPreviewContainer');
-        const previewImg = document.getElementById('cardPreviewImg');
-        previewImg.src = appState.aiGeneratedCardB64;
-        previewWrap.classList.remove('hidden');
+        document.getElementById('cardPreviewImg').src = appState.aiGeneratedCardB64;
+        document.getElementById('cardPreviewContainer').classList.remove('hidden');
         triggerToast("카드가 피어났습니다 (기본 템플릿 연동)", "🎨");
       } finally {
         appState.isGeneratingCard = false;
@@ -681,7 +628,6 @@
       }
     }
 
-    // Robust fetch helper with retry backoff
     async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
       try {
         const res = await fetch(url, options);
@@ -694,51 +640,26 @@
       }
     }
 
-    // 일기 제출 처리 (AI 위로 멘트 추가)
     async function submitJournal() {
       const noteText = document.getElementById('journalNote').value.trim();
       const level = parseInt(document.getElementById('moodLevel').value);
-
       const entryId = Date.now();
       const isOString = new Date().toISOString();
       const timeStr = new Date().toLocaleString();
-
       let aiResponseText = "오늘 하루의 작은 조각이 소중히 마음에 기록되었습니다. 항상 당신을 선배가 마음 깊이 응원하고 있어요.";
 
       if (noteText) {
         try {
-          // Gemini API를 통해 일기에 알맞는 정교하고 포근한 위로 멘트 요청
-          const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-          const systemRule = "당신은 따뜻하고 부드러운 마음을 안아주는 대학생 전담 상담 선배입니다. 후배의 일기를 읽고 2문장 내외로 마음을 꼬옥 잡아주는 따뜻하고 다정한 위로 존댓말을 건네주세요.";
-          const userQuery = `오늘 후배가 느낀 기분: ${appState.selectedMood} (크기: ${level}/10), 관련된 영역: ${appState.selectedTags.join(', ')}\n내용: "${noteText}"`;
-
-          const response = await fetch(modelUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: userQuery }] }],
-              systemInstruction: { parts: [{ text: systemRule }] }
-            })
-          });
+          const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+          const systemRule = "당신은 로봇이나 AI가 아니라 인간적인 따뜻함을 가진 대학교 선배 '온'입니다. 후배의 일기를 읽고 2문장 내외로 마음을 꼬옥 잡아주는 따뜻하고 다정한 존댓말 위로를 건네주세요. 기계적인 답변 금지.";
+          const userQuery = `오늘 후배 기분: ${appState.selectedMood} (크기: ${level}/5), 영역: ${appState.selectedTags.join(', ')}\n내용: "${noteText}"`;
+          const response = await fetch(modelUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemRule }] } }) });
           const resJson = await response.json();
           aiResponseText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || aiResponseText;
-        } catch (e) {
-          console.error("AI 멘트 처리 누락 - 기성 템플릿 사용");
-        }
+        } catch (e) { console.error("AI 멘트 처리 누락"); }
       }
 
-      const newEntry = {
-        id: entryId,
-        emotion: appState.selectedMood,
-        level: level,
-        note: noteText,
-        tags: [...appState.selectedTags],
-        time: timeStr,
-        isoString: isOString,
-        aiComment: aiResponseText,
-        imageCard: appState.aiGeneratedCardB64
-      };
-
+      const newEntry = { id: entryId, emotion: appState.selectedMood, level: level, note: noteText, tags: [...appState.selectedTags], time: timeStr, isoString: isOString, aiComment: aiResponseText, imageCard: appState.aiGeneratedCardB64 };
       const existingData = JSON.parse(localStorage.getItem("moodData") || "[]");
       existingData.unshift(newEntry);
       localStorage.setItem("moodData", JSON.stringify(existingData));
@@ -751,14 +672,13 @@
 
     function resetJournalForm() {
       document.getElementById('journalNote').value = '';
-      document.getElementById('moodLevel').value = 5;
-      updateLevelDisplay(5);
+      document.getElementById('moodLevel').value = 3;
+      updateLevelDisplay(3);
       updateCharCount('');
       appState.selectedTags = [];
       appState.aiGeneratedCardB64 = null;
       document.getElementById('cardPreviewContainer').classList.add('hidden');
       document.getElementById('cardPreviewImg').src = '';
-      
       document.querySelectorAll('#tagPool button').forEach(btn => {
         btn.classList.remove('bg-cherry-200', 'dark:bg-night-50', 'border-cherry-400');
         btn.classList.add('bg-white', 'dark:bg-night-50');
@@ -766,48 +686,29 @@
       selectMood('행복');
     }
 
-    // 저장된 타임라인 리스트 피드 렌더링
     function renderJournalFeed() {
       const feed = document.getElementById('journalFeed');
+      if(!feed) return;
       const data = JSON.parse(localStorage.getItem("moodData") || "[]");
 
       if (data.length === 0) {
-        feed.innerHTML = `
-          <div class="p-8 border-2 border-dashed border-cherry-200 dark:border-cherry-900 text-center rounded-3xl text-xs text-cherry-400">
-            🌿 아직 남겨진 꽃잎이 없습니다. 오늘의 감정을 한 줄 보관해 보세요.
-          </div>`;
+        feed.innerHTML = `<div class="p-8 border-2 border-dashed border-cherry-200 dark:border-cherry-900 text-center rounded-3xl text-xs text-cherry-400">🌿 아직 남겨진 꽃잎이 없습니다. 오늘의 감정을 한 줄 보관해 보세요.</div>`;
         return;
       }
-
       feed.innerHTML = data.map(d => {
         const borderCol = `style="border-left-color: var(--color-${d.emotion}, var(--accent-color))"`;
-        const tagsMarkup = d.tags && d.tags.length > 0 
-          ? `<div class="flex flex-wrap gap-1 mt-1.5">${d.tags.map(t => `<span class="text-[9px] bg-cherry-100 dark:bg-night-100 text-cherry-600 dark:text-cherry-300 px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div>`
-          : '';
-
-        const cardMarkup = d.imageCard 
-          ? `<div class="mt-3 rounded-2xl overflow-hidden max-h-32 border border-cherry-100"><img src="${d.imageCard}" alt="Art" class="w-full h-32 object-cover" /></div>` 
-          : '';
-
+        const tagsMarkup = d.tags && d.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-1.5">${d.tags.map(t => `<span class="text-[9px] bg-cherry-100 dark:bg-night-100 text-cherry-600 dark:text-cherry-300 px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div>` : '';
+        const cardMarkup = d.imageCard ? `<div class="mt-3 rounded-2xl overflow-hidden max-h-32 border border-cherry-100"><img src="${d.imageCard}" alt="Art" class="w-full h-32 object-cover" /></div>` : '';
         return `
           <div class="relative bg-white dark:bg-night-50 border border-cherry-200 dark:border-cherry-900 p-4 rounded-3xl shadow-sm border-l-4 transition hover:shadow-md" ${borderCol}>
             <button onclick="deleteJournalId(${d.id})" class="absolute top-3.5 right-4 text-cherry-300 hover:text-cherry-600 transition">✕</button>
-            <div class="flex items-center justify-between text-[10px] text-cherry-400">
-              <span>${d.time}</span>
-            </div>
-            <h4 class="font-bold text-xs text-cherry-800 dark:text-cherry-100 mt-1">
-              ${moodMapper[d.emotion]?.emoji || '📝'} ${d.emotion} <span class="text-[10px] font-normal text-cherry-400">(정서 강도: ${d.level}/10)</span>
-            </h4>
-            
+            <div class="flex items-center justify-between text-[10px] text-cherry-400"><span>${d.time}</span></div>
+            <h4 class="font-bold text-xs text-cherry-800 dark:text-cherry-100 mt-1">${moodMapper[d.emotion]?.emoji || '📝'} ${d.emotion} <span class="text-[10px] font-normal text-cherry-400">(정서 강도: ${d.level}/5)</span></h4>
             ${d.note ? `<p class="text-xs text-cherry-600 dark:text-cherry-300 mt-2 leading-relaxed whitespace-pre-wrap">${escapeHtml(d.note)}</p>` : ''}
             ${tagsMarkup}
             ${cardMarkup}
-
-            <!-- AI 다정한 위로 답글 -->
             <div class="mt-3 bg-cherry-50/50 dark:bg-night-100/50 border border-cherry-100 dark:border-cherry-900/40 p-2.5 rounded-2xl">
-              <span class="text-[10px] font-bold text-cherry-700 dark:text-cherry-300 flex items-center gap-1">
-                <i data-lucide="heart" class="w-3 h-3 fill-current text-cherry-500"></i> 선배 똑똑의 정성 어린 위로:
-              </span>
+              <span class="text-[10px] font-bold text-cherry-700 dark:text-cherry-300 flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3 fill-current text-cherry-500"></i> 선배 똑똑의 정성 어린 위로:</span>
               <p class="text-[11px] text-cherry-600 dark:text-cherry-400 leading-relaxed mt-1 whitespace-pre-wrap">${d.aiComment}</p>
             </div>
           </div>
@@ -821,356 +722,142 @@
         let existing = JSON.parse(localStorage.getItem("moodData") || "[]");
         existing = existing.filter(e => e.id !== id);
         localStorage.setItem("moodData", JSON.stringify(existing));
-        
         triggerToast("기록을 소소히 흩트렸습니다.", "🍃");
         renderJournalFeed();
         updateStreakDisplay();
-        if (appState.activeTab === 'calendar') {
-          renderMoodCalendar();
-        }
+        if (appState.activeTab === 'calendar') renderMoodCalendar();
       });
     }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
+    function escapeHtml(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
-    // 연속 기록 일자 알고리즘
     function updateStreakDisplay() {
+      const el = document.getElementById('streakCount');
+      if(!el) return;
       const data = JSON.parse(localStorage.getItem("moodData") || "[]");
-      if (data.length === 0) {
-        document.getElementById('streakCount').textContent = '0';
-        return;
-      }
-
-      // 유니크 일자 배열 정렬
-      const dates = data
-        .map(e => e.isoString ? e.isoString.split('T')[0] : new Date(e.id).toISOString().split('T')[0])
-        .filter((v, i, self) => self.indexOf(v) === i)
-        .sort((a, b) => new Date(b) - new Date(a));
-
-      if (dates.length === 0) {
-        document.getElementById('streakCount').textContent = '0';
-        return;
-      }
-
+      if (data.length === 0) { el.textContent = '0'; return; }
+      const dates = data.map(e => e.isoString ? e.isoString.split('T')[0] : new Date(e.id).toISOString().split('T')[0]).filter((v, i, self) => self.indexOf(v) === i).sort((a, b) => new Date(b) - new Date(a));
+      if (dates.length === 0) { el.textContent = '0'; return; }
       const todayStr = new Date().toISOString().split('T')[0];
       const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-      // 오늘 또는 어제 기록이 없다면 스트릭 초기화
-      if (dates[0] !== todayStr && dates[0] !== yesterdayStr) {
-        document.getElementById('streakCount').textContent = '0';
-        return;
-      }
-
+      if (dates[0] !== todayStr && dates[0] !== yesterdayStr) { el.textContent = '0'; return; }
       let consecutive = 1;
       for (let i = 0; i < dates.length - 1; i++) {
-        const d1 = new Date(dates[i]);
-        const d2 = new Date(dates[i + 1]);
+        const d1 = new Date(dates[i]); const d2 = new Date(dates[i + 1]);
         const diffDays = Math.ceil(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-        if (diffDays === 1) {
-          consecutive++;
-        } else if (diffDays > 1) {
-          break;
-        }
+        if (diffDays === 1) consecutive++; else if (diffDays > 1) break;
       }
-      document.getElementById('streakCount').textContent = consecutive;
+      el.textContent = consecutive;
     }
 
-    // --- TAB 2: AI 공감 상담소 채팅 기획 ---
-    function setChatMode(mode) {
-      appState.chatMode = mode;
-      const empBtn = document.getElementById('mode-empathy');
-      const advBtn = document.getElementById('mode-advice');
-
-      if (mode === 'empathy') {
-        empBtn.className = "py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white dark:bg-night-50 text-cherry-800 dark:text-cherry-100 border border-cherry-300 dark:border-cherry-800";
-        advBtn.className = "py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-cherry-400 dark:text-cherry-500";
-      } else {
-        advBtn.className = "py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white dark:bg-night-50 text-cherry-800 dark:text-cherry-100 border border-cherry-300 dark:border-cherry-800";
-        empBtn.className = "py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-cherry-400 dark:text-cherry-500";
-      }
-      lucide.createIcons();
-    }
-
-    function suggestIssue(type) {
-      let prompt = "";
-      if (type === '학업') prompt = "요즘 과제랑 중간고사 성적이 마음처럼 안 나와서 자책감이 들고 우울해요. 힘내고 싶어요 선배.";
-      if (type === '진로') prompt = "동기들은 다들 착실히 학점과 대외활동 스펙을 쌓는데, 저는 진로가 명확하지 않고 뒤처지는 느낌입니다.";
-      if (type === '인간관계') prompt = "교내 조별 과제에서 무임승차하는 동기가 있어 답답하고, 상처받지 않게 말을 전하고 싶어요.";
-      if (type === '음악') prompt = "위로가 되는 잔잔하고 정적인 플레이리스트나 심리 안정에 들을 만한 노래나 유튜브 추천 음악 검색 링크를 알려주세요!";
-
-      document.getElementById('chatInput').value = prompt;
-      document.getElementById('chatInput').focus();
-    }
-
-    function checkChatEnter(e) {
-      if (e.key === 'Enter') sendChatMessage();
-    }
-
-    // AI 마크다운 링크 전용 파서
-    function parseMarkdownLinks(text) {
-      if (!text) return '';
-      const regex = /\[([^\]]+)\]\(((https?:\/\/)[^\s)]+)\)/g;
-      return text.replace(regex, function(match, title, url) {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cherry-600 hover:text-cherry-800 font-bold underline inline-flex items-center gap-0.5 bg-cherry-200/40 px-2 py-0.5 rounded transition mx-1">
-          <span>${title}</span>
-          <i data-lucide="external-link" class="w-3 h-3 inline text-cherry-500"></i>
-        </a>`;
-      });
-    }
-
-    function renderChatLogs() {
-      const feed = document.getElementById('chatFeed');
-      feed.innerHTML = appState.chatHistory.map((msg, i) => {
-        const isUser = msg.role === 'user';
-        const containerClass = isUser ? 'justify-end' : 'justify-start';
-        const msgStyle = isUser 
-          ? 'bg-gradient-to-r from-cherry-500 to-cherry-600 text-white rounded-tr-none' 
-          : 'bg-cherry-50/70 dark:bg-night-50 text-cherry-900 dark:text-cherry-100 rounded-tl-none border border-cherry-200/40 dark:border-cherry-900/50';
-
-        return `
-          <div class="flex ${containerClass}">
-            <div class="max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${msgStyle}">
-              ${isUser ? escapeHtml(msg.content) : parseMarkdownLinks(msg.content)}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (appState.isChatLoading) {
-        feed.innerHTML += `
-          <div class="flex justify-start">
-            <div class="bg-cherry-100/60 dark:bg-night-100 text-cherry-500 text-xs rounded-2xl rounded-tl-none p-3 flex items-center gap-2">
-              <span class="w-3 h-3 border-2 border-cherry-500 border-t-transparent rounded-full animate-spin"></span>
-              <span>지친 속마음을 귀담아듣고 있어요...</span>
-            </div>
-          </div>
-        `;
-      }
-      feed.scrollTop = feed.scrollHeight;
-      lucide.createIcons();
-    }
-
-    async function sendChatMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text || appState.isChatLoading) return;
-
-      input.value = '';
-      appState.chatHistory.push({ role: 'user', content: text });
-      appState.isChatLoading = true;
-      renderChatLogs();
-
-      try {
-        const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-        const systemPrompt = `
-          당신은 대학 후배를 아끼는 마음에 조언해주는 수려한 마음똑똑 벚꽃관 선배 상담원입니다.
-          현재 테마 모드: [${appState.chatMode === 'empathy' ? '공감 모드' : '현실 조언 모드'}].
-          
-          - [공감 모드 적용 시]: 이성적인 잘잘못 판단이나 논증, 훈계를 삼가고 후배의 상처 입고 불안한 감정을 전적으로 꼬옥 안아주며 전적으로 격려하고 편들어 주세요.
-          - [현실 조언 모드 적용 시]: 먼저 상냥하게 따스한 차를 주듯 다독인 후 후배의 고민(학점 등)에 도움이 될 수 있는 실용적이고 조용한 팁을 2~3가지 조리 있게 제시해 주세요.
-
-          ★ 음악 연동 최우선 지침:
-          - 만약 후배가 "노래 추천", "플레이리스트", "음악 링크", "자가 테스트 사이트", "안심 지원"을 물어보거나 추천해 달라고 하면 절대 주저하지 말고 본문 중에 마크다운 문법 '[텍스트](실제URL)'을 직접 명기하여 제공해 주세요:
-            * 음악 검색: '[기분 안정 유튜브 음악 검색 링크](https://www.youtube.com/results?search_query=%ED%9E%90%EB%A7%81+%EC%9D%8C%EC%95%85)' 또는 '[빗소리 백색소음 바로 가기](https://www.youtube.com/results?search_query=%EC%9E%90%EC%97%B0%EC%9D%98+%EC%86%8C%EB%A6%AC+%EB%B0%B1%EC%83%89%EC%86%8C%EC%9D%8C)'
-            * 자가진단: '[정신건강포털 마음 자가진단](https://www.mentalhealth.go.kr)'
-            * 복지혜택: '[복지로 포털 사이트](https://www.bokjiro.go.kr)'
-            * 청년 지원: '[사이버 1388 공식 웹주소](https://www.cyber1388.kr)'
-          - 이 링크들을 문맥에 적절히 심어서 이정표가 될 수 있게 안내해 주세요.
-        `;
-
-        const payload = {
-          contents: appState.chatHistory.map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }]
-          })),
-          systemInstruction: { parts: [{ text: systemPrompt }] }
-        };
-
-        const response = await fetchWithRetry(modelUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const resData = await response.json();
-        const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "아 잠시 생각의 꽃잎이 엉켜 흐려졌네요. 선배에게 다시 한번만 귓속말을 해주세요.";
-        
-        appState.chatHistory.push({ role: 'assistant', content: responseText });
-      } catch (err) {
-        appState.chatHistory.push({ role: 'assistant', content: "일시적인 회로 통신 오류가 발생했어요. 하지만 당신을 아끼는 선배의 맘은 변치 않으니 잠시 뒤 다시 들려주세요." });
-      } finally {
-        appState.isChatLoading = false;
-        renderChatLogs();
-      }
-    }
-
-    function clearChat() {
-      appState.chatHistory = [
-        {
-          role: 'assistant',
-          content: '대화의 정원이 깨끗이 정돈되었습니다. 어떤 이야기라도 좋으니, 준비가 되었을 때 선배에게 이야기를 편안하게 건네주세요.'
-        }
-      ];
-      renderChatLogs();
-    }
-
-    // --- TAB 3: 달력 렌더링 및 통계 분석 엔진 ---
-    function navigateCalendarMonth(dir) {
-      appState.viewDate.setMonth(appState.viewDate.getMonth() + dir);
-      renderMoodCalendar();
-    }
+    // --- TAB 3 기능 ---
+    function navigateCalendarMonth(dir) { appState.viewDate.setMonth(appState.viewDate.getMonth() + dir); renderMoodCalendar(); }
 
     function renderMoodCalendar() {
       const grid = document.getElementById('calendarGrid');
       const title = document.getElementById('calendarTitle');
+      if(!grid || !title) return;
       grid.innerHTML = '';
-
-      const year = appState.viewDate.getFullYear();
-      const month = appState.viewDate.getMonth();
+      const year = appState.viewDate.getFullYear(); const month = appState.viewDate.getMonth();
       title.textContent = `${year}년 ${month + 1}월`;
-
       const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
-      daysOfWeek.forEach(d => {
-        const h = document.createElement('div');
-        h.className = "font-bold text-cherry-400 py-1";
-        h.textContent = d;
-        grid.appendChild(h);
-      });
-
-      const startDay = new Date(year, month, 1).getDay();
-      const lastDate = new Date(year, month + 1, 0).getDate();
-
-      for (let i = 0; i < startDay; i++) {
-        const blank = document.createElement('div');
-        blank.className = 'py-4';
-        grid.appendChild(blank);
-      }
-
+      daysOfWeek.forEach(d => { const h = document.createElement('div'); h.className = "font-bold text-cherry-400 py-1"; h.textContent = d; grid.appendChild(h); });
+      const startDay = new Date(year, month, 1).getDay(); const lastDate = new Date(year, month + 1, 0).getDate();
+      for (let i = 0; i < startDay; i++) { const blank = document.createElement('div'); blank.className = 'py-4'; grid.appendChild(blank); }
       const data = JSON.parse(localStorage.getItem("moodData") || "[]");
-
       for (let d = 1; d <= lastDate; d++) {
         const cell = document.createElement('div');
         cell.className = 'py-1.5 flex flex-col items-center justify-between border border-cherry-100/40 dark:border-cherry-900/40 rounded-xl bg-white/50 dark:bg-night-50/50 min-h-[44px]';
         cell.innerHTML = `<span class="font-bold text-[10px] text-cherry-700 dark:text-cherry-300">${d}</span>`;
-
-        // 해당 일자 감정 분석하여 매치
-        const padMonth = String(month + 1).padStart(2, '0');
-        const padDay = String(d).padStart(2, '0');
+        const padMonth = String(month + 1).padStart(2, '0'); const padDay = String(d).padStart(2, '0');
         const targetStr = `${year}-${padMonth}-${padDay}`;
-
         const matches = data.filter(e => e.isoString && e.isoString.startsWith(targetStr));
-        const dotsWrap = document.createElement('div');
-        dotsWrap.className = 'flex gap-0.5 justify-center mt-1 min-h-[6px]';
-
+        const dotsWrap = document.createElement('div'); dotsWrap.className = 'flex gap-0.5 justify-center mt-1 min-h-[6px]';
         matches.slice(0, 3).forEach(item => {
-          const dot = document.createElement('div');
-          dot.className = 'w-1.5 h-1.5 rounded-full';
-          dot.style.backgroundColor = moodMapper[item.emotion]?.color || '#ff8fab';
-          dotsWrap.appendChild(dot);
+          const dot = document.createElement('div'); dot.className = 'w-1.5 h-1.5 rounded-full';
+          dot.style.backgroundColor = moodMapper[item.emotion]?.color || '#ff8fab'; dotsWrap.appendChild(dot);
         });
-
-        cell.appendChild(dotsWrap);
-        grid.appendChild(cell);
+        cell.appendChild(dotsWrap); grid.appendChild(cell);
       }
-
-      calculateStatistics(data);
-      renderMindChart();
+      calculateStatistics(data); renderMindChart();
     }
 
     function calculateStatistics(data) {
       document.getElementById('statCount').textContent = `${data.length}회`;
-      if (data.length === 0) {
-        document.getElementById('statAverage').textContent = '0.0';
-        document.getElementById('statDominant').textContent = '없음';
-        return;
-      }
-
+      if (data.length === 0) { document.getElementById('statAverage').textContent = '0.0'; document.getElementById('statDominant').textContent = '없음'; return; }
       const avg = data.reduce((acc, curr) => acc + curr.level, 0) / data.length;
       document.getElementById('statAverage').textContent = avg.toFixed(1);
-
-      const freqMap = {};
-      data.forEach(e => freqMap[e.emotion] = (freqMap[e.emotion] || 0) + 1);
-
-      let topMood = "없음";
-      let topCount = 0;
-      Object.entries(freqMap).forEach(([k, v]) => {
-        if (v > topCount) {
-          topCount = v;
-          topMood = `${moodMapper[k]?.emoji || ''} ${k}`;
-        }
-      });
+      const freqMap = {}; data.forEach(e => freqMap[e.emotion] = (freqMap[e.emotion] || 0) + 1);
+      let topMood = "없음"; let topCount = 0;
+      Object.entries(freqMap).forEach(([k, v]) => { if (v > topCount) { topCount = v; topMood = `${moodMapper[k]?.emoji || ''} ${k}`; } });
       document.getElementById('statDominant').textContent = topMood;
     }
 
-    // Chart.js 렌더 엔진
     function renderMindChart() {
-      const ctx = document.getElementById('mindChart').getContext('2d');
+      const canvas = document.getElementById('mindChart');
+      if(!canvas) return; const ctx = canvas.getContext('2d');
       const data = [...JSON.parse(localStorage.getItem("moodData") || "[]")].reverse();
-      
       const isDark = document.documentElement.classList.contains('dark');
-      const axisColor = isDark ? '#dcaebb' : '#6e4c54';
-      const gridColor = isDark ? '#3b202b' : '#ffe5ec';
-
-      if (appState.moodChartInstance) {
-        appState.moodChartInstance.destroy();
-      }
-
-      if (data.length === 0) {
-        return;
-      }
-
-      const labels = data.map(d => {
-        const split = d.time.split(' ');
-        return split[1] && split[2] ? split[1] + " " + split[2] : d.time;
-      });
+      const axisColor = isDark ? '#dcaebb' : '#6e4c54'; const gridColor = isDark ? '#3b202b' : '#ffe5ec';
+      if (appState.moodChartInstance) appState.moodChartInstance.destroy();
+      if (data.length === 0) return;
+      const labels = data.map(d => { const split = d.time.split(' '); return split[1] && split[2] ? split[1] + " " + split[2] : d.time; });
       const dataPoints = data.map(d => d.level);
-
       appState.moodChartInstance = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '내 감정 강도 변동 추이',
-            data: dataPoints,
-            borderColor: '#fb6f92',
-            backgroundColor: isDark ? 'rgba(251, 111, 146, 0.15)' : 'rgba(251, 111, 146, 0.05)',
-            borderWidth: 2,
-            tension: 0.35,
-            fill: true,
-            pointBackgroundColor: data.map(d => moodMapper[d.emotion]?.color || '#ff8fab'),
-            pointRadius: 5
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: axisColor, font: { size: 10 } } }
-          },
-          scales: {
-            x: {
-              grid: { color: gridColor },
-              ticks: { color: axisColor, font: { size: 8 } }
-            },
-            y: {
-              min: 1,
-              max: 10,
-              grid: { color: gridColor },
-              ticks: { color: axisColor, stepSize: 1, font: { size: 9 } }
-            }
-          }
-        }
+        data: { labels: labels, datasets: [{ label: '내 감정 강도 변동 추이', data: dataPoints, borderColor: '#fb6f92', backgroundColor: isDark ? 'rgba(251, 111, 146, 0.15)' : 'rgba(251, 111, 146, 0.05)', borderWidth: 2, tension: 0.35, fill: true, pointBackgroundColor: data.map(d => moodMapper[d.emotion]?.color || '#ff8fab'), pointRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: axisColor, font: { size: 10 } } } }, scales: { x: { grid: { color: gridColor }, ticks: { color: axisColor, font: { size: 8 } } }, y: { min: 1, max: 5, grid: { color: gridColor }, ticks: { color: axisColor, stepSize: 1, font: { size: 9 } } } } }
       });
     }
 
-    // --- TAB 4: 4-7-8 심호흡 제어 엔진 ---
+    // --- TAB 4 기능 (호흡 & 확언) ---
+    let _breathPetalInterval = null;
+    function showBreathPetals(show) {
+      const area = document.getElementById('breathPetalArea');
+      if (!area) return;
+      area.style.opacity = show ? '1' : '0';
+      if (_breathPetalInterval) { clearInterval(_breathPetalInterval); _breathPetalInterval = null; }
+      if (show) {
+        _breathPetalInterval = setInterval(() => {
+          const span = document.createElement('span');
+          span.textContent = ['🌸', '😊', '✨', '🌸'][Math.floor(Math.random() * 4)]; // 벚꽃과 행복(스마일) 이모티콘 믹스
+          span.style.cssText = `position:absolute;font-size:${14+Math.random()*10}px;left:${Math.random()*90}%;top:30px;animation:petalFloat ${1.5+Math.random()}s ease-out forwards;pointer-events:none;`;
+          area.appendChild(span);
+          setTimeout(() => span.remove(), 2500);
+        }, 350);
+      }
+    }
+
+    function setBreathSoundText(phase, timer) {
+      const el = document.getElementById('breathSoundText');
+      if (!el) return;
+      if (phase === 'inhale') {
+        const dots = '흡'.repeat(Math.max(1, 4 - timer + 1));
+        el.textContent = '🌬️ 들이쉬기... ' + dots;
+        el.style.color = '#fb6f92';
+        el.style.opacity = '1';
+      } else if (phase === 'hold') {
+        el.textContent = '✨ 참기...';
+        el.style.color = '#f59e0b';
+        el.style.opacity = '1';
+      } else if (phase === 'exhale') {
+        const exhaleWords = ['후우우...', '하아아...', '후우우...', '하아아...'];
+        el.textContent = '💨 ' + (exhaleWords[Math.floor((8 - timer) % exhaleWords.length)] || '후우우...');
+        el.style.color = '#38bdf8';
+        el.style.opacity = '1';
+      } else {
+        el.style.opacity = '0';
+      }
+    }
+
     function startBreathingExercise() {
       document.getElementById('btnStartBreath').classList.add('hidden');
       document.getElementById('btnStopBreath').classList.remove('hidden');
-
       appState.breathState = 'inhale';
       appState.breathTimer = 4;
+      document.getElementById('breathFace').textContent = "😮";
+      document.getElementById('breathFace').style.transform = "scale(1.05)";
+      showBreathPetals(true);
       runBreathingTick();
     }
 
@@ -1180,115 +867,363 @@
       const timerTxt = document.getElementById('breathTimer');
 
       const handlePhaseChange = () => {
-        if (appState.breathState === 'inhale') {
-          appState.breathState = 'hold';
-          appState.breathTimer = 7;
-        } else if (appState.breathState === 'hold') {
-          appState.breathState = 'exhale';
-          appState.breathTimer = 8;
-        } else if (appState.breathState === 'exhale') {
-          appState.breathState = 'inhale';
-          appState.breathTimer = 4;
-        }
+        if (appState.breathState === 'inhale') { appState.breathState = 'hold'; appState.breathTimer = 7; }
+        else if (appState.breathState === 'hold') { appState.breathState = 'exhale'; appState.breathTimer = 8; }
+        else if (appState.breathState === 'exhale') { appState.breathState = 'inhale'; appState.breathTimer = 4; }
       };
 
-      // 루프 로직 가동
       appState.breathLoopInterval = setInterval(() => {
         appState.breathTimer--;
 
-        // UI 텍스트 및 서클 크기 세팅
         if (appState.breathState === 'inhale') {
-          actionTxt.textContent = "코로 흡입";
-          actionTxt.className = "text-xs font-bold text-cherry-600 dark:text-cherry-300";
+          actionTxt.textContent = "들이쉬기"; actionTxt.className = "text-[10px] font-bold text-cherry-600 dark:text-cherry-300";
           ring.style.transform = `scale(${1.25 - (appState.breathTimer / 4) * 0.25})`;
+          document.getElementById('breathFace').textContent = "😮"; // 들이마시는 표정
+          document.getElementById('breathFace').style.transform = "scale(1.15)";
         } else if (appState.breathState === 'hold') {
-          actionTxt.textContent = "멈추기";
-          actionTxt.className = "text-xs font-bold text-amber-500";
+          actionTxt.textContent = "멈추기"; actionTxt.className = "text-[10px] font-bold text-amber-500";
           ring.style.transform = `scale(1.25)`;
+          document.getElementById('breathFace').textContent = "😶"; // 숨 참는 표정
+          document.getElementById('breathFace').style.transform = "scale(1.2)";
         } else if (appState.breathState === 'exhale') {
-          actionTxt.textContent = "한숨 방출";
-          actionTxt.className = "text-xs font-bold text-sky-500";
+          actionTxt.textContent = "내쉬기"; actionTxt.className = "text-[10px] font-bold text-sky-500";
           ring.style.transform = `scale(${1.0 + (appState.breathTimer / 8) * 0.25})`;
+          document.getElementById('breathFace').textContent = "😌"; // 편안하게 내쉬는 표정
+          document.getElementById('breathFace').style.transform = "scale(1.0)";
         }
 
+        setBreathSoundText(appState.breathState, appState.breathTimer);
         timerTxt.textContent = `${appState.breathTimer}초`;
-
-        if (appState.breathTimer <= 0) {
-          handlePhaseChange();
-        }
+        if (appState.breathTimer <= 0) handlePhaseChange();
       }, 1000);
     }
 
     function stopBreathingExercise() {
       clearInterval(appState.breathLoopInterval);
+      showBreathPetals(false);
       document.getElementById('btnStartBreath').classList.remove('hidden');
       document.getElementById('btnStopBreath').classList.add('hidden');
-
       document.getElementById('breathAction').textContent = "대기";
-      document.getElementById('breathAction').className = "text-xs font-bold text-cherry-700";
+      document.getElementById('breathAction').className = "text-[10px] font-bold text-cherry-700";
       document.getElementById('breathTimer').textContent = "0초";
       document.getElementById('breathRing').style.transform = "scale(1.0)";
+      document.getElementById('breathFace').textContent = "🌸";
+      document.getElementById('breathFace').style.transform = "scale(1.0)";
+      const soundEl = document.getElementById('breathSoundText');
+      if (soundEl) { soundEl.style.opacity = '0'; soundEl.textContent = ''; }
       appState.breathState = 'ready';
     }
 
-    // Gemini API 기반 긍정 확언 새로고침
     async function getNewAffirmation() {
       const btn = document.getElementById('btnAffirmation');
       btn.disabled = true;
       btn.innerHTML = `<span class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></span> 작문 중...`;
-
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const query = "지친 청춘 대학생을 격려하기 위한 마음 챙김 및 자존감 강화용 한 줄짜리 한국어 긍정 확언(Affirmation)을 1개만 정성스럽고 짧게 지어줘.";
-
-        const response = await fetchWithRetry(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] })
-        });
+        const response = await fetchWithRetry(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] }) });
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "나의 찬란한 계절은 아직 오지 않았을 뿐, 반드시 꽃피울 것입니다.";
-        
         document.getElementById('affirmationText').textContent = `"${text.replace(/"/g, '').trim()}"`;
         triggerToast("새로운 정서 영양제를 피워냈습니다.", "✨");
-      } catch (e) {
-        document.getElementById('affirmationText').textContent = `"나는 그 자체로 소중하며, 나만의 호흡과 속도대로 성장하고 있습니다."`;
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="refresh-cw" class="w-3 h-3"></i> 격려문 새로 짓기`;
-        lucide.createIcons();
-      }
+      } catch (e) { document.getElementById('affirmationText').textContent = `"나는 그 자체로 소중하며, 나만의 호흡과 속도대로 성장하고 있습니다."`; }
+      finally { btn.disabled = false; btn.innerHTML = `<i data-lucide="refresh-cw" class="w-3 h-3"></i> 격려문 새로 짓기`; lucide.createIcons(); }
     }
 
-    // --- 네비게이션 탭 변환 ---
     function switchTab(tabId) {
       appState.activeTab = tabId;
       const tabs = ['journal', 'counsel', 'calendar', 'shelter'];
-      
       tabs.forEach(t => {
-        const btn = document.getElementById(`tab-${t}`);
-        const panel = document.getElementById(`panel-${t}`);
-        if (t === tabId) {
-          btn.classList.add('border-cherry-500', 'text-cherry-600', 'dark:text-cherry-300');
-          btn.classList.remove('border-transparent', 'text-cherry-400', 'dark:text-cherry-500');
-          panel.classList.remove('hidden');
-        } else {
-          btn.classList.remove('border-cherry-500', 'text-cherry-600', 'dark:text-cherry-300');
-          btn.classList.add('border-transparent', 'text-cherry-400', 'dark:text-cherry-500');
-          panel.classList.add('hidden');
+        const btn = document.getElementById(`tab-${t}`); const panel = document.getElementById(`panel-${t}`);
+        if(btn && panel) {
+          if (t === tabId) { btn.classList.add('border-cherry-500', 'text-cherry-600', 'dark:text-cherry-300'); btn.classList.remove('border-transparent', 'text-cherry-400', 'dark:text-cherry-500'); panel.classList.remove('hidden'); }
+          else { btn.classList.remove('border-cherry-500', 'text-cherry-600', 'dark:text-cherry-300'); btn.classList.add('border-transparent', 'text-cherry-400', 'dark:text-cherry-500'); panel.classList.add('hidden'); }
         }
       });
+      if (tabId === 'calendar') renderMoodCalendar();
+      if (tabId === 'journal') renderJournalFeed();
+    }
+  </script>
 
-      // 탭 로딩 후 트리거 작업
-      if (tabId === 'calendar') {
-        renderMoodCalendar();
-      }
-      if (tabId === 'journal') {
-        renderJournalFeed();
-      }
-      if (tabId === 'counsel') {
-        renderChatLogs();
-      }
+  <!-- React 기반 AI 상담소 컴포넌트 스크립트 -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const EMOTION_MAP_C = {
+      joy: { label: "기쁨 😊", color: "bg-amber-100 text-amber-800 border-amber-300" },
+      sadness: { label: "슬픔/지침 😢", color: "bg-blue-100 text-blue-800 border-blue-300" },
+      anger: { label: "분노 😡", color: "bg-red-100 text-red-800 border-red-300" },
+      fear: { label: "불안/공포 😨", color: "bg-purple-100 text-purple-800 border-purple-300" },
+      disgust: { label: "불쾌 🤮", color: "bg-green-100 text-green-800 border-green-300" },
+      surprise: { label: "놀람 😲", color: "bg-pink-100 text-pink-800 border-pink-300" },
+      neutral: { label: "평온 😐", color: "bg-slate-100 text-slate-800 border-slate-300" }
+    };
+
+    const LOCAL_KW = [
+      { emotion: "sadness", keywords: ["힘들","슬프","우울","지쳐","지친","아프","아파","외롭","눈물","울었","울고","죽겠","속상","낙담","허전","괴롭","버거운"] },
+      { emotion: "anger", keywords: ["화나","화가","짜증","열받","미워","억울","빡치","분해","싸웠","지긋지긋","싫어","분통"] },
+      { emotion: "fear", keywords: ["불안","걱정","두려","무서","초조","긴장","떨려","어떡해","겁나","답답","막막"] },
+      { emotion: "joy", keywords: ["기뻐","행복","즐거","신나","성공","해냈","감사","좋아","웃음","다행","완벽"] },
+      { emotion: "disgust", keywords: ["불쾌","귀찮","극혐","더러","찝찝","질려","진저리"] },
+      { emotion: "surprise", keywords: ["놀라","깜짝","대박","세상에","갑자기","어머","충격"] }
+    ];
+
+    const HEALING_PLAYLIST_C = {
+      sadness: [{ artist: "선우정아", title: "도망가자", query: "선우정아+도망가자", desc: "마음이 한없이 버겁고 지쳐서 다 놓아두고 도망치고 싶을 때 안아주는 곡입니다." }],
+      anger: [{ artist: "이소라", title: "바람이 분다", query: "이소라+바람이+분다", desc: "모든 억울함과 요동치던 분노가 바람을 타고 조용히 흩어지게 해주는 명곡입니다." }],
+      fear: [{ artist: "옥상달빛", title: "수고했어 오늘도", query: "옥상달빛+수고했어+오늘도", desc: "내일의 불안감 대신 오늘 무사히 생존해낸 나를 축하하게 만드는 곡입니다." }],
+      neutral: [{ artist: "아이유", title: "밤편지", query: "아이유+밤편지", desc: "고요한 반딧불이 한 조각처럼 영혼을 깊고 평화롭게 잠재우는 곡입니다." }]
+    };
+
+    const DEEP_RESPONSES_C = {
+      sadness: ["너무 무겁고 아픈 시간을 겪었구나... 그런 날은 억지로 씩씩해지려 하지 않아도 괜찮아. 내가 곁에서 묵묵히 들어줄게."],
+      anger: ["정말 화가 나고 억울했겠다! 속상한 마음이 나한테까지 전해지는 것 같아. 마음이 풀릴 때까지 다 쏟아내도 돼."],
+      fear: ["앞이 안 보이고 두려웠구나. 많이 긴장했을 텐데 혼자 앓지 않고 이야기해 줘서 고마워. 내가 천천히 같이 고민해줄게."],
+      neutral: ["오늘 하루 있었던 일들을 편안하게 들려줘서 고마워. 특별한 일 없는 보통의 고요한 일상이 때론 가장 깊은 휴식이 되기도 한단다."]
+    };
+
+    function analyzeEmotion(text) {
+      for (const entry of LOCAL_KW) { if (entry.keywords.some(kw => text.includes(kw))) return entry.emotion; }
+      return "neutral";
+    }
+
+    function renderMdText(text) {
+      if (!text) return "";
+      const parts = text.split(/(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|\n)/g);
+      return parts.map((part, i) => {
+        if (part === '\n') return <br key={i} />;
+        if (typeof part !== 'string') return null;
+        const linkMatch = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+        if (linkMatch) {
+          const isYT = linkMatch[2].includes("youtube");
+          return (
+            <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+              style={{display:'inline-flex',alignItems:'center',gap:'4px',background:'#fce7f3',border:'1px solid #fbcfe8',color:'#ec4899',fontWeight:'700',fontSize:'11px',padding:'3px 10px',borderRadius:'99px',margin:'2px',textDecoration:'none'}}>
+              {isYT ? "🎬" : "🌐"} {linkMatch[1]} <span style={{opacity:.6,fontSize:'9px'}}>↗</span>
+            </a>
+          );
+        }
+        const bold = part.match(/^\*\*([^*]+)\*\*$/);
+        if (bold) return <strong key={i} style={{fontWeight:'800'}}>{bold[1]}</strong>;
+        const italic = part.match(/^\*([^*]+)\*$/);
+        if (italic) return <em key={i}>{italic[1]}</em>;
+        return part;
+      });
+    }
+
+    function CounselApp() {
+      const [apiKeyState] = useState(() => localStorage.getItem("COUNSELING_GEMINI_KEY") || window.apiKey || "");
+      const [chatMode, setChatMode] = useState('empathy'); // 'empathy' or 'advice'
+      const [messages, setMessages] = useState([{
+        id: "welcome", role: "assistant", emotion: "neutral",
+        content: "안녕! 나는 너의 마음을 들어주는 따뜻한 대학교 선배 '온(On)'이야 🌸\n학업, 친구 관계, 진로 등 털어놓고 싶은 고민이 있다면 언제든 편하게 말해줘. 위로가 필요할 땐 [따뜻한 공감 모드], 조언이 필요할 땐 [현실 조언 모드]를 선택해 주면 돼!",
+        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+      }]);
+      const [input, setInput] = useState("");
+      const [isLoading, setIsLoading] = useState(false);
+      const [errorMsg, setErrorMsg] = useState("");
+      const endRef = useRef(null);
+
+      useEffect(() => { endRef.current?.scrollIntoView({behavior:'smooth'}); }, [messages, isLoading]);
+
+      const fetchGemini = async (userMsg, history, mode) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKeyState}`;
+        const wantsSong = /노래|음악|곡|플레이|유튜브/.test(userMsg);
+        let recNote = wantsSong ? "\n[미션: 위로가 되는 노래 한 곡 추천하고 [유튜브에서 듣기](URL) 마크다운 링크 포함시켜줘]" : "";
+
+        // ★ 기계적인 말투 방지 및 모드별 프롬프트 세분화 ★
+        const baseSysPrompt = "당신은 로봇이나 AI가 아니라, 따뜻하고 인간적인 다정한 대학교 선배 '온(On)'입니다.\n" +
+          "[절대 규칙]: 1. 본인이 AI, 인공지능, 봇, 언어모델이라는 언급을 절대로 하지 마세요. 2. '도움이 필요하시면 말씀해주세요' 같은 기계적인 서비스 멘트를 금지합니다. 3. 자연스럽고 다정한 말투(반말과 부드러운 존댓말 혼용 가능)를 사용하세요. 친한 선배처럼 대하세요.";
+        
+        const modePrompt = mode === 'empathy'
+          ? "[현재 모드: 무조건적인 따뜻한 공감]\n논리적인 분석이나 훈계, 충고를 절대 하지 마세요. 오직 상대방의 상처입고 지친 감정에 전적으로 공감하고 꼬옥 안아주세요. '정말 힘들었겠다', '네 잘못이 아니야' 등 무조건 내 편이 되어주는 위로를 해주세요."
+          : "[현재 모드: 현실적인 다정한 조언]\n우선 다정하게 상대방의 마음에 공감해준 뒤, 고민(학업, 진로, 관계 등)을 해결하는 데 도움이 될 만한 작고 실용적인 꿀팁이나 현실적인 조언을 1~2개 조심스럽게 제안해주세요. 꼰대 같지 않게 부드러운 어조를 유지하세요.";
+
+        const sysPrompt = baseSysPrompt + "\n\n" + modePrompt + recNote + `
+[출력 형식]: 반드시 아래 JSON 포맷만 반환하세요:
+{"emotion":"joy"|"sadness"|"anger"|"fear"|"disgust"|"surprise"|"neutral","reply":"(상담 내용)"}`;
+
+        const cleanHist = [];
+        let lastRole = null;
+        history.forEach(m => {
+          if (m.id === "welcome" || m.isError) return;
+          const r = m.role === 'user' ? 'user' : 'model';
+          if (cleanHist.length === 0 && r !== 'user') return;
+          if (r !== lastRole) { cleanHist.push({role:r, parts:[{text:m.content}]}); lastRole=r; }
+          else { cleanHist[cleanHist.length-1].parts[0].text += "\n"+m.content; }
+        });
+        const hist = cleanHist.slice(-8);
+        if (hist.length && hist[hist.length-1].role==='user') hist.pop();
+        hist.push({role:'user', parts:[{text:userMsg}]});
+
+        const res = await fetch(url, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            contents: hist,
+            tools: [{google_search:{}}],
+            systemInstruction: {parts:[{text:sysPrompt}]},
+            generationConfig: {responseMimeType:"application/json", responseSchema:{type:"OBJECT",properties:{emotion:{type:"STRING"},reply:{type:"STRING"}},required:["emotion","reply"]}}
+          })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!txt) throw new Error("응답 없음");
+        return JSON.parse(txt);
+      };
+
+      const handleSend = async (e) => {
+        if (e) e.preventDefault();
+        if (!input.trim() || isLoading) return;
+        const userText = input.trim();
+        setInput(""); setErrorMsg(""); setIsLoading(true);
+        const userMsg = {id:`u-${Date.now()}`, role:"user", content:userText, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})};
+        setMessages(prev => [...prev, userMsg]);
+        
+        try {
+          let reply, emotion;
+          if (apiKeyState) {
+            const result = await fetchGemini(userText, [...messages, userMsg], chatMode);
+            reply = result.reply; emotion = result.emotion || "neutral";
+          } else {
+            emotion = analyzeEmotion(userText);
+            const pool = DEEP_RESPONSES_C[emotion] || DEEP_RESPONSES_C["neutral"];
+            reply = pool[Math.floor(Math.random()*pool.length)];
+          }
+          setMessages(prev => [...prev, {id:`a-${Date.now()}`, role:"assistant", content:reply, emotion, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}]);
+        } catch(err) {
+          const emotion = analyzeEmotion(userText);
+          setErrorMsg("네트워크 연결 지연으로 로컬 공감이 작동했습니다.");
+          const pool = DEEP_RESPONSES_C[emotion] || DEEP_RESPONSES_C["neutral"];
+          setMessages(prev => [...prev, {id:`a-${Date.now()}`, role:"assistant", content:pool[0], emotion, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}]);
+        } finally { setIsLoading(false); }
+      };
+
+      const quickSuggests = [
+        {label:"📚 학점 걱정", text:"선배, 요즘 성적이 마음처럼 안 나와서 자책감이 들고 우울해요."},
+        {label:"🧭 진로 막막함", text:"다른 애들에 비해 저만 뒤처지는 느낌이라 진로가 너무 막막해요."},
+        {label:"👥 인간관계", text:"팀 프로젝트에서 자꾸 무임승차하는 동기 때문에 억울한데 어떻게 하죠?"},
+        {label:"🎵 음악 추천", text:"지금 너무 지치는데 위로가 되는 플레이리스트 하나 추천해줄 수 있어요?"}
+      ];
+
+      return (
+        <div style={{display:'flex',flexDirection:'column',height:'520px',background:'linear-gradient(to bottom right, #fbf8f5, #f4ebe1)',fontFamily:'Pretendard, sans-serif',borderRadius:'20px',overflow:'hidden'}}>
+          {/* 헤더 */}
+          <div style={{background:'rgba(255,255,255,0.9)',borderBottom:'1px solid #ebdcd0',padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+              <span style={{fontSize:'22px'}}>🌸</span>
+              <div>
+                <div style={{fontWeight:'700',fontSize:'13px',color:'#7c4b3e'}}>마음을 들어주는 선배, 온</div>
+                <div style={{fontSize:'10px',color:'#b07a6e'}}>{chatMode === 'empathy' ? '❤️ 무조건적인 내 편' : '💡 따뜻하고 현실적인 조력자'}</div>
+              </div>
+            </div>
+            <button onClick={() => {
+              setMessages([{id:"welcome",role:"assistant",emotion:"neutral",content:"대화가 비워졌어. 다시 언제든 편하게 말을 걸어줘 🌸",time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}]);
+              setErrorMsg("");
+            }} style={{fontSize:'11px',color:'#b07a6e',background:'none',border:'none',cursor:'pointer',fontWeight:'700'}}>🗑️ 대화 비우기</button>
+          </div>
+
+          {/* 모드 설정 스위처 */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', padding:'10px 16px', background:'rgba(255,255,255,0.6)', borderBottom:'1px solid #f0e4dc'}}>
+            <button onClick={() => setChatMode('empathy')} style={{
+              padding:'8px', borderRadius:'12px', fontSize:'11px', fontWeight:'800', transition:'all 0.2s', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+              background: chatMode === 'empathy' ? 'white' : 'transparent',
+              color: chatMode === 'empathy' ? '#b53d55' : '#fb6f92',
+              border: chatMode === 'empathy' ? '1px solid #ffb3c6' : '1px solid transparent',
+              boxShadow: chatMode === 'empathy' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+            }}>
+              ❤️ 따뜻한 공감 모드
+            </button>
+            <button onClick={() => setChatMode('advice')} style={{
+              padding:'8px', borderRadius:'12px', fontSize:'11px', fontWeight:'800', transition:'all 0.2s', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+              background: chatMode === 'advice' ? 'white' : 'transparent',
+              color: chatMode === 'advice' ? '#b53d55' : '#fb6f92',
+              border: chatMode === 'advice' ? '1px solid #ffb3c6' : '1px solid transparent',
+              boxShadow: chatMode === 'advice' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'
+            }}>
+              🧭 현실 조언 모드
+            </button>
+          </div>
+
+          {/* 퀵 제안 */}
+          <div style={{padding:'8px 12px',display:'flex',gap:'6px',flexWrap:'wrap',borderBottom:'1px solid #f0e4dc',background:'rgba(255,255,255,0.5)',flexShrink:0}}>
+            {quickSuggests.map(q => (
+              <button key={q.label} onClick={() => setInput(q.text)}
+                style={{fontSize:'10px',padding:'4px 10px',borderRadius:'99px',border:'1px solid #f9ccd5',background:'white',color:'#b53d55',fontWeight:'700',cursor:'pointer'}}>
+                {q.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 메시지 영역 */}
+          <div className="custom-scrollbar" style={{flex:1,overflowY:'auto',padding:'12px',display:'flex',flexDirection:'column',gap:'12px',background:'#fbfaf8'}}>
+            {messages.map(msg => {
+              const isUser = msg.role === 'user';
+              const emInfo = !isUser && msg.emotion ? EMOTION_MAP_C[msg.emotion] : null;
+              return (
+                <div key={msg.id} style={{display:'flex',justifyContent:isUser?'flex-end':'flex-start',alignItems:'flex-end',gap:'6px'}}>
+                  {isUser && <span style={{fontSize:'9px',color:'#aaa',flexShrink:0}}>{msg.time}</span>}
+                  <div style={{maxWidth:'82%',display:'flex',flexDirection:'column',alignItems:isUser?'flex-end':'flex-start'}}>
+                    {!isUser && emInfo && (
+                      <span style={{fontSize:'9px',padding:'2px 7px',borderRadius:'6px',border:'1px solid',marginBottom:'3px',marginLeft:'4px',fontWeight:'600'}} className={emInfo.color}>
+                        {emInfo.label}
+                      </span>
+                    )}
+                    <div style={{
+                      padding:'10px 14px',borderRadius:'18px',fontSize:'12px',lineHeight:'1.7',wordBreak:'break-word',
+                      background: isUser ? '#ec4899' : 'white',
+                      color: isUser ? 'white' : '#333',
+                      borderTopRightRadius: isUser ? '4px' : '18px',
+                      borderTopLeftRadius: isUser ? '18px' : '4px',
+                      border: isUser ? 'none' : '1px solid #f3cdd8',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                      fontWeight: isUser ? '600' : '400'
+                    }}>
+                      {isUser ? msg.content : renderMdText(msg.content)}
+                    </div>
+                  </div>
+                  {!isUser && <span style={{fontSize:'9px',color:'#aaa',flexShrink:0}}>{msg.time}</span>}
+                </div>
+              );
+            })}
+            {isLoading && (
+              <div style={{display:'flex',justifyContent:'flex-start',alignItems:'flex-end',gap:'6px'}}>
+                <div style={{padding:'10px 14px',borderRadius:'18px',borderTopLeftRadius:'4px',background:'white',border:'1px solid #f3cdd8',fontSize:'12px',color:'#999',display:'flex',alignItems:'center',gap:'6px'}}>
+                  <span>선배가 다정하게 이야기를 고르는 중...</span>
+                  <span style={{display:'flex',gap:'3px'}}>
+                    {[0,150,300].map(d => (
+                      <span key={d} style={{width:'6px',height:'6px',background:'#ec4899',borderRadius:'50%',display:'inline-block',animation:'bounce 0.8s ease infinite',animationDelay:`${d}ms`}}/>
+                    ))}
+                  </span>
+                </div>
+              </div>
+            )}
+            <div ref={endRef}/>
+          </div>
+
+          {/* 입력 폼 */}
+          <form onSubmit={handleSend} style={{padding:'10px 12px',borderTop:'1px solid #ebdcd0',background:'white',display:'flex',gap:'8px',flexShrink:0}}>
+            <input
+              type="text" value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="힘든 마음이나 속상한 일을 선배한테 다 털어놔 봐!"
+              disabled={isLoading}
+              style={{flex:1,padding:'10px 14px',borderRadius:'99px',border:'1px solid #f3cdd8',fontSize:'12px',outline:'none',background:'#fafafa'}}
+            />
+            <button type="submit" disabled={!input.trim()||isLoading}
+              style={{padding:'10px 18px',borderRadius:'99px',background:input.trim()&&!isLoading?'#ec4899':'#e5e7eb',color:input.trim()&&!isLoading?'white':'#9ca3af',border:'none',fontWeight:'700',fontSize:'12px',cursor:input.trim()&&!isLoading?'pointer':'default',transition:'all .2s'}}>
+              전송 ✈️
+            </button>
+          </form>
+          <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}`}</style>
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('counsel-root');
+    if (rootElement) {
+      const reactRoot = ReactDOM.createRoot(rootElement);
+      reactRoot.render(<CounselApp />);
     }
   </script>
 </body>
